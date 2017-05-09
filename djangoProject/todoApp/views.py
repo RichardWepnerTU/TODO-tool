@@ -20,11 +20,11 @@ def todoList(request):
 
 def requestMethod(request):
 	if request.method == 'GET':
-	    todoGet(request)
+	    return todoGet(request)
 	elif request.method == 'PUT':
-	    todoPut(request, id)
+	    return todoPut(request)
 	elif request.method == 'DELETE':
-	    todoDelete(request, id)
+	    return todoDelete(request, id)
 
 #get spectific entry    
 #def todoEntry(request, id):

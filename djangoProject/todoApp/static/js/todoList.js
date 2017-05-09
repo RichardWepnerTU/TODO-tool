@@ -1,4 +1,25 @@
 var TODO_backend = (function(){
+	function getCookie(name) {
+		var cookieValue = null;
+		if (document.cookie && document.cookie !== '') {
+			var cookies = document.cookie.split(';');
+			for (var i = 0; i < cookies.length; i++) {
+				var cookie = jQuery.trim(cookies[i]);
+				// Does this cookie string begin with the name we want?
+				if (cookie.substring(0, name.length + 1) === (name + '=')) {
+					cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+					break;
+				}
+			}
+		}
+		return cookieValue;
+	}
+	var csrftoken = getCookie('csrftoken');
+	function csrfSafeMethod(method) {
+		// these HTTP methods do not require CSRF protection
+		return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+	}
+	
 	var DEBUG_mockupEntries = [
 		{
 			id: 1,
@@ -101,11 +122,27 @@ var TODO_backend = (function(){
 	var getAllEntries = function(params) {
 		// params.callback = function()
 		
+		$.ajax({
+			url: '/list/',
+			type: 'GET',
+			dataType: 'json'
+		}).done(function(data, status) {
+			console.log('done')
+			console.log(data);
+			data.forEach(function(entry) {
+				entry.elements = [];
+			});
+			if(typeof params.callback == 'function') {
+				params.callback(data);
+			}
+		}).always(function() {
+			console.log('always')
+		}).fail(function(a,b,c,d) {
+			console.log('fail', a, b, c, d)
+		});
+		
 		// TODO: implement
 		console.warn('getAllEntries not implemented');
-		if(typeof params.callback == 'function') {
-			params.callback(DEBUG_mockupEntries);
-		}
 	};
 	
 	getAllEntries({
@@ -124,10 +161,19 @@ var TODO_backend = (function(){
 	};
 	
 	var saveEntry = function(oldEntry, data) {
-		$.ajax('list', {
-			url: 'list/' + oldEntry.id,
-			type: 'POST',
+		$.ajax({
+			url: '/list/' + oldEntry.id,
+			type: 'PUT',
 			data: data,
+			beforeSend: function(xhr, settings) {
+				try {
+				if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+					xhr.setRequestHeader("X-CSRFToken", csrftoken);
+				}
+				} catch(exception) {
+					console.log(exception);
+				}
+			},
 			success: function() {
 				oldEntry.name = data.name;
 				oldEntry.description = data.description;
