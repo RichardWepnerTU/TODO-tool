@@ -22,6 +22,9 @@
 .TODO_entryProgressLabel {
 	
 }
+.TODO_entryProgressDisplay {
+	margin-left: .5em
+}
 .TODO_entryDueDate {
 	
 }

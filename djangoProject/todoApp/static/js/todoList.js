@@ -20,6 +20,7 @@ var TODO_backend = (function(){
 		return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 	}
 	
+	var DEBUG = false;
 	var DEBUG_mockupEntries = [
 		{
 			id: 1,
@@ -48,7 +49,6 @@ var TODO_backend = (function(){
 	var finishInitialization = function() {
 		if(!initializationDone) {
 			initializationDone = true;
-			console.log('actually initialize');
 			
 			// findlists
 			var $lists = $('.TODO_list');
@@ -89,7 +89,6 @@ var TODO_backend = (function(){
 		
 	var addEntryToList = function(entry, list) {
 		var $entryElement = $(list.template).clone();
-		console.log($entryElement, "test");
 		$entryElement.removeClass('TODO_entryTemplate');
 		setEntryData($entryElement, entry);
 		$entryElement.find('.TODO_entryEditButton').click(function() {
@@ -103,9 +102,12 @@ var TODO_backend = (function(){
 		$entryElement.appendTo($(list.element));
 		$entryElement[0].entryId = entry.id;
 		entry.elements.push($entryElement[0]);
-		// TODO: add edit callback
-		// TODO: add delete callback
-		console.warn('addEntryToList not implemented');
+		$entryElement.find('.TODO_entryDescription').popover();
+		var editevent = $(list.element).hasClass('TODO_singleClickEdit') ? 'click' : 'dblclick';
+		$entryElement.on(editevent, function() {
+			api.requestEditEntry(entry);
+			return false;
+		});
 	};
 	var setEntryData = function($entryElement, entry) {
 		$entryElement.find('.TODO_entryName').text(entry.name);
@@ -126,21 +128,23 @@ var TODO_backend = (function(){
 	
 	var getAllEntries = function(params) {
 		// params.callback = function()
-		
-		$.ajax({
-			url: '/list/',
-			type: 'GET',
-			dataType: 'json'
-		}).done(function(data, status) {
-			console.log('done')
-			console.log(data);
+		var successCallback = function(data, status) {
 			data.forEach(function(entry) {
 				entry.elements = [];
 			});
 			if(typeof params.callback == 'function') {
 				params.callback(data);
 			}
-		});
+		};
+		if(!DEBUG) {
+			$.ajax({
+				url: '/list/',
+				type: 'GET',
+				dataType: 'json'
+			}).done(successCallback);
+		} else {
+			successCallback(DEBUG_mockupEntries, null);
+		}
 	};
 	
 	getAllEntries({
@@ -158,47 +162,75 @@ var TODO_backend = (function(){
 		return entry;
 	};
 	
+	var createEntry = function(data) {
+		var successCallback = function() {
+			data.elements = [];
+			entries.push(data);
+			addEntryToLists(data);
+		};
+		if(!DEBUG) {
+			$.ajax({
+				url: '/list/',
+				type: 'POST',
+				data: data,
+				beforeSend: function(xhr, settings) {
+					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+						xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					}
+				},
+				success: successCallback
+			});
+		} else {
+			successCallback();
+		}
+	};
 	var saveEntry = function(oldEntry, data) {
-		$.ajax({
-			url: '/list/' + oldEntry.id,
-			type: 'PUT',
-			data: data,
-			beforeSend: function(xhr, settings) {
-				if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-					xhr.setRequestHeader("X-CSRFToken", csrftoken);
-				}
-			},
-			success: function() {
-				oldEntry.name = data.name;
-				oldEntry.description = data.description;
-				oldEntry.dueDate = data.dueDate;
-				oldEntry.progress = data.progress;
-				oldEntry.elements.forEach(function(element) {
-					setEntryData(element, oldEntry);
-				});
-			}
-		});
+		var successCallback = function() {
+			oldEntry.name = data.name;
+			oldEntry.description = data.description;
+			oldEntry.dueDate = data.dueDate;
+			oldEntry.progress = data.progress;
+			oldEntry.elements.forEach(function(element) {
+				setEntryData($(element), oldEntry);
+			});
+		};
+		if(!DEBUG) {
+			$.ajax({
+				url: '/list/' + oldEntry.id,
+				type: 'PUT',
+				data: data,
+				beforeSend: function(xhr, settings) {
+					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+						xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					}
+				},
+				success: successCallback
+			});
+		} else {
+			successCallback();
+		}
 	};
 	var deleteEntry = function(entry) {
-		$.ajax({
-			url: '/list/' + entry.id,
-			type: 'DELETE',
-			beforeSend: function(xhr, settings) {
-				try {
-				if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-					xhr.setRequestHeader("X-CSRFToken", csrftoken);
-				}
-				} catch(exception) {
-					console.log(exception);
-				}
-			},
-			success: function() {
-				entry.elements.forEach(function(element) {
-					element.remove();
-				});
-				entries.splice(entries.indexOf(entry), 1);
-			}
-		});
+		var successCallback = function() {
+			entry.elements.forEach(function(element) {
+				element.remove();
+			});
+			entries.splice(entries.indexOf(entry), 1);
+		};
+		if(!DEBUG) {
+			$.ajax({
+				url: '/list/' + entry.id,
+				type: 'DELETE',
+				beforeSend: function(xhr, settings) {
+					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+						xhr.setRequestHeader("X-CSRFToken", csrftoken);
+					}
+				},
+				success: successCallback
+			});
+		} else {
+			successCallback();
+		}
 	}
 	
 	var api = {};
@@ -206,16 +238,11 @@ var TODO_backend = (function(){
 		// params.id = id
 		// params.callback = function(...)
 		
-		// TODO: implement
-		console.warn('requestDeleteEntry not implemented');
 		var entry = getEntry(params.id);
-		console.log(entry);
 		if(entry != null) {
-			console.log('found entry');
 			var $dialog = $('#confirmDeletePopup').clone();
 			$dialog[0].id = '';
 			$dialog.find('.TODO_acceptButton').click(function(event){
-				console.log(event);
 				deleteEntry(entry);
 				// TODO: move to callback
 				$dialog.modal('hide');
@@ -233,7 +260,6 @@ var TODO_backend = (function(){
 		
 		var entry = getEntry(params.id);
 		if(entry != null) {
-			console.log('found entry');
 			var $dialog = $('#editPopup').clone();
 			initDialog($dialog, entry, function(){
 				saveEntry(entry, {
@@ -253,15 +279,14 @@ var TODO_backend = (function(){
 		// TODO: define parameters
 		// TODO: implement
 		
-		console.log('found entry');
 		var $dialog = $('#editPopup').clone();
-		initDialog({
+		initDialog($dialog, {
 			name: '',
 			description: '',
 			progress: 0,
 			dueDate: '2017/05/12'
 		}, function(){
-			saveEntry(entry, {
+			createEntry({
 				name: $dialog.find('.TODO_entryName').val(),
 				description: $dialog.find('.TODO_entryDescription').val(),
 				progress: $dialog.find('.TODO_entryProgress').val(),
@@ -275,10 +300,22 @@ var TODO_backend = (function(){
 	var initDialog = function($dialog, entry, callback) {
 		$dialog[0].id = '';
 		$dialog.removeClass('TODO_dialogTemplate');
+		$dialog.appendTo($(document.body));
 		
 		$dialog.find('.TODO_entryName').val(entry.name);
 		$dialog.find('.TODO_entryDescription').val(entry.description);
-		$dialog.find('.TODO_entryProgress').val(entry.progress);
+		$dialog.find('.TODO_entryProgress').slider({
+			value: entry.progress,
+			formatter: function(value) {
+				return value + ' %';
+			},
+			'classes': 'form-control',
+			'clazz': 'form-control',
+			'style': 'form-control'
+		}).on('slide', function(slideEvent) {
+			$dialog.find('.TODO_entryProgressDisplay').text(slideEvent.value + ' %');
+		});
+		$dialog.find('.TODO_entryProgressDisplay').text(entry.progress + ' %');
 		$dialog.find('.TODO_entryDueDate').val(entry.dueDate);
 		
 		$dialog.find('.TODO_acceptButton').click(callback);
@@ -286,7 +323,7 @@ var TODO_backend = (function(){
 		$dialog.bind('hidden.bs.modal', function() {
 			$dialog.remove();
 		});
-		$dialog.appendTo($(document.body));
+		$dialog.attr('tabindex',1);
 		$dialog.modal('show');
 	};
 	return api;
