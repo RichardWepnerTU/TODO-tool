@@ -11,6 +11,7 @@
 		<!-- Bootstrap -->
 		<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.min.css' %}" />
 		<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-slider.min.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'css/todoList.css' %}" />
 
 		<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
 		<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -25,6 +26,7 @@
 		<!-- Include all compiled plugins (below), or include individual files as needed -->
 		<script src="{% static 'js/bootstrap.min.js'%}"></script>
 		<script src="{% static 'js/bootstrap-slider.min.js'%}"></script>
+		<script src="{% static 'js/todoList.js'%}"></script>
 		
 		<script>
 			$(document).ready(function() {
@@ -76,16 +78,6 @@
 	        </div><!--/.nav-collapse -->
 	      </div>
 	    </nav>
-		
-{% if todoEntries %}
-    <ul>
-    {% for entry in todoEntries %}
-        <li><a href="/todo/{{ entry.id }}/">{{ entry.name }}</a> - {{entry.description}}</li>
-    {% endfor %}
-    </ul>
-{% else %}
-    <p>No polls are available.</p>
-{% endif %}
 
 		<div class="container theme-showcase" role="main">
 			<div class="page-header">
@@ -105,61 +97,51 @@
 			                <th class="span1"></th>
 		              	</tr>
 		            </thead>
-		            <tbody>
+		            <tbody class="TODO_list">
+{% if todoEntries %}
+    {% for entry in todoEntries %}
 		            	<tr ondblclick="$('#editPopup').modal('show');">
-			                <td>Homework</td>
-			                <td>17/5/3</td>
+			                <td>{{ entry.name }}</td>
+			                <td>{{ entry.dueDate }}</td>
 			                <td>
 			                	<div class="progress">
-	        						<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" style="width: 30%"><span class="sr-only">30% Complete</span>
+	        						<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="{{ entry.progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ entry.progress }}%"><span class="sr-only">{{ entry.progress }}% Complete</span>
 	        						</div>
 	      						</div>
 	      					</td>
 			                <td>
-			                	<div class="dropdown">
-	  								<button class="btn btn-sm btn-link dropdown-toggle" type="button" data-trigger="focus" id="info" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-								    More Info
-									</button>
-							  		<div class="dropdown-menu" aria-labelledby="info">
-							    		<div class="container">
-							    			Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch.
-							    		</div>
-							   	 	</div>
-								</div>
+								<button type="button" class="btn btn-sm btn-link" data-toggle="popover" title="Important Stuff" data-placement="top" data-trigger="focus" data-content="{{ entry.description }}">
+									More Info
+								</button>
 			                </td>
 			            	<td class="span1">
 			            		<a class="btn btn-sm btn-primary glyphicon glyphicon-pencil" href="#" data-toggle="modal" data-target="#editPopup"></a>
 			            		<a class="btn btn-sm btn-danger glyphicon glyphicon-trash" href="#" data-toggle="modal" data-target="#confirmDeletePopup"></a>
-			            		</td>
+			            	</td>
 		            	</tr>
-		            	<tr ondblclick="$('#editPopup').modal('show');">
-		            		<td>Important Stuff</td>
-			                <td>17/9/25</td>
+    {% endfor %}
+{% else %}
+    
+{% endif %}
+		            	<tr class="TODO_entryTemplate TODO_singleClickEdit" ondblclick="$('#editPopup').modal('show');">
+			                <td class="TODO_entryName">-name-</td>
+			                <td class="TODO_entryDueDate">-date-</td>
 			                <td>
 			                	<div class="progress">
-	        						<div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%"><span class="sr-only">80% Complete</span></div>
+	        						<div class="progress-bar progress-bar-info TODO_entryProgress" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"><span class="sr-only"><span class="TODO_entryProgressLabel">{{ entry.progress }}</span>% Complete</span>
+	        						</div>
 	      						</div>
 	      					</td>
 			                <td>
-				                <!--<div class="dropdown">
-		  							<button class="btn btn-sm btn-link dropdown-toggle" type="button" id="info" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									    More Info
-									</button>
-								  	<div class="dropdown-menu" aria-labelledby="info">
-								    	<div class="container">
-								    		Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch.
-								    	</div>
-								    </div>
-								</div>-->
-								<button type="button" class="btn btn-sm btn-link" data-toggle="popover" title="Important Stuff" data-placement="top" data-trigger="focus" data-content="Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch.">
+								<button type="button" class="btn btn-sm btn-link TODO_entryDescription" data-toggle="popover" title="Important Stuff" data-placement="top" data-trigger="focus" data-content="-description-">
 									More Info
 								</button>
 			                </td>
-			            	<td>
-			            		<a class="btn btn-sm btn-primary glyphicon glyphicon-pencil" href="#" data-toggle="modal" data-target="#editPopup"></a>
-			            		<a class="btn btn-sm btn-danger glyphicon glyphicon-trash" href="#" data-toggle="modal" data-target="#confirmDeletePopup"></a>
-			            	</td class="col-md-1">	            	
-			            </tr>
+			            	<td class="span1">
+			            		<a class="btn btn-sm btn-primary glyphicon glyphicon-pencil TODO_entryEditButton" href="#" data-toggle="modal" data-target="#editPopup"></a>
+			            		<a class="btn btn-sm btn-danger glyphicon glyphicon-trash TODO_entryDeleteButton" href="#" data-toggle="modal" data-target="#confirmDeletePopup"></a>
+			            	</td>
+		            	</tr>
 		            </tbody>
 		          </table>
 		        <!--</div>-->
@@ -169,8 +151,14 @@
 			<div class="container hidden-sm hidden-md hidden-lg">
 				<div class="row">
 					<div class="list-group">
-						<a class="list-group-item" href="#" data-toggle="modal" data-target="#editPopup"><span class="title">Homework</span><span class="dueDate" style="float:right;">2017/05/03</span></a>
-						<a class="list-group-item" href="#" data-toggle="modal" data-target="#editPopup"><span class="title">Important Stuff</span><span class="dueDate" style="float:right;">2017/09/25</span></a>
+{% if todoEntries %}
+    {% for entry in todoEntries %}
+						<a class="list-group-item" href="#" data-toggle="modal" data-target="#editPopup"><span class="title">{{ entry.name }}</span><span class="dueDate" style="float:right;">{{ entry.dueDate }}</span></a>
+    {% endfor %}
+{% else %}
+    
+{% endif %}
+						<a class="list-group-item" href="#" data-toggle="modal" data-target="#editPopup"><span class="title TODO_entryName">-name-</span><span class="dueDate TODO_entryDueDate" style="float:right;">-dueDate-</span></a>
 					</div>
 				</div>
 			</div>
@@ -213,7 +201,7 @@
 				</div>
 			</form>
 		</div>
-		<div id="editPopup" class="modal fade" role="dialog">
+		<div id="editPopup" class="modal fade TODO_dialogTemplate" role="dialog">
 			<form class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -223,36 +211,36 @@
 					<div class="modal-body">
 						<div class="form-group">
 							<label for="inputTitle">Title</label>
-							<input type="text" class="form-control" id="inputTitle" placeholder="Enter title" maxlength="160" value="Important Stuff">
+							<input type="text" class="form-control TODO_entryName" id="inputTitle" placeholder="Enter title" maxlength="160" value="Important Stuff">
 						</div>
 						<div class="form-group">
 							<label for="addDueDate" class="col-2 col-form-label">Due Date</label>
 							<div class="col-10">
-								<input class="form-control" type="date" value="2017-05-03" id="addDueDate">
+								<input class="form-control TODO_entryDueDate" type="date" value="2017-05-03" id="addDueDate">
 							</div>
 						</div>
 						<div class="form-group">
 							<label for="progress" class="col-2 col-form-label">Progress</label>
 							<div class="col-10">
-								<input type="text" id="editProgress" name="progress" class="form-control" data-slider-id="editProgressSlider" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="80" />
+								<input type="text" id="editProgress" name="progress" class="form-control TODO_entryProgress" data-slider-id="editProgressSlider" data-slider-min="0" data-slider-max="100" data-slider-step="1" data-slider-value="80" />
 								<span id="editProgressDisplay" style="margin-left: .5em">80 %</span>
 							</div>
 						</div>
 						<div class="form-group">
 							<label for="addDespriction">Add Description</label>
-							<textarea id="addDespriction" class="form-control" style="resize: vertical" rows="3">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch.</textarea>
+							<textarea id="addDespriction" class="form-control TODO_entryDescription" style="resize: vertical" rows="3">Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch.</textarea>
 						</div>
 						<div class="container">
 						</div>
 					</div>
 					<div class="modal-footer">
-						<button type="submit" class="btn btn-success" href="#" data-dismiss="modal">Save</button>
+						<button type="submit" class="btn btn-success TODO_acceptButton" href="#">Save</button>
 						<button type="button" class="btn btn-link" href="#" data-dismiss="modal">Dismiss</button>
 					</div>
 				</div>
 			</form>
 		</div>
-		<div id="confirmDeletePopup" class="modal fade" role="dialog">
+		<div id="confirmDeletePopup" class="modal fade TODO_dialogTemplate" role="dialog">
 			<form class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
