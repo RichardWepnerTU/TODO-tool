@@ -5,5 +5,6 @@ from . import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^todo/', views.index, name='index')
+    url(r'^todo/', views.index, name='index'),
+    url(r'^list/', views.requestMethod, name='list')
 ]
