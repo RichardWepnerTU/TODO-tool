@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, QueryDict
 from django.template import loader
 from django.forms.models import modelform_factory
 from django.core import serializers
@@ -21,14 +21,12 @@ def todoList(request):
 def requestMethod(request):
 	if request.method == 'GET':
 	    return todoGet(request)
-	elif request.method == 'PUT':
-	    return todoPut(request)
+	elif request.method == 'POST':
+	    return todoPost(request)
 	elif request.method == 'DELETE':
-	    return todoDelete(request, id)
-
-#get spectific entry    
-#def todoEntry(request, id):
-    #return HTTPResponse("" % id)
+	    return todoDelete(request)
+	elif request.method == 'PUT':
+		return todoPut(request)
 
 #returns all current object in db
 def todoGet(request):
@@ -37,22 +35,28 @@ def todoGet(request):
 		data.append({'id':elem.id, 'name':elem.name, 'description':elem.description, 'dueDate':elem.dueDate, 'progress':elem.progress})
 	return JsonResponse(data, safe=False)
 
-#put
+#post new todo
+def todoPost(request):
+	post = QueryDict(request.body)
+	#newDate = post.get('dueDate')
+	newObj = ToDoEntry(name=post.get('name'), description=post.get('description'), dueDate='2017-09-25 16:00',progress=post.get('progress'))
+	newObj.save()
+	return HttpResponse(status=201)
+
+put modify existing todo
 def todoPut(request):
-	modelform = modelform_factory(ToDoEntry)
-	form = modelform(request.PUT)
-	if form.is_valid():
-		form.save()
-	return redirect('restview')
-
-#post
-def todoPost(request, id):
-	pass
-	#obj = ToDoEntry.objects.get(pk=id)
-
+	put = QueryDict(request.body)
+	obj = ToDoEntry.objects.get(pk=put.get('id'))
+	obj.name = put.get('name')
+	obj.description = put.get('description')
+	obj.progress = put.get('progress')
+	obj.dueDate = put.get('dueDate')
+	obj.save()
+	return HttpResponse(status=200)
 
 #delete
 def todoDelete(request, id):
+	# delete = QueryDict(request.body)
+	# ToDoEntry.objects.get(pk=id).delete()
+	# return HttpResponse(status=200)
 	pass
-	#ToDoEntry.objects.get(id).delete()
-	#return HTTPResponse()
