@@ -40,7 +40,7 @@ def todoPost(request):
 	post = QueryDict(request.body)
 	newObj = ToDoEntry(name=post.get('name'), description=post.get('description'), dueDate=post.get('dueDate'),progress=post.get('progress'))
 	newObj.save()
-	data = [{'id':newObj.id, 'name':newObj.name, 'description':newObj.description, 'dueDate':newObj.dueDate, 'progress':newObj.progress}]
+	data = {'id':newObj.id, 'name':newObj.name, 'description':newObj.description, 'dueDate':newObj.dueDate, 'progress':newObj.progress}
 	return JsonResponse(data, safe=False)
 
 #put modify existing todo

@@ -169,8 +169,9 @@ var TODO_backend = (function(){
 	};
 	
 	var createEntry = function(data) {
-		var successCallback = function() {
+		var successCallback = function(response) {
 			data.elements = [];
+			data.id = response.id;
 			entries.push(data);
 			addEntryToLists(data);
 		};
@@ -179,6 +180,7 @@ var TODO_backend = (function(){
 				url: '/list/',
 				type: 'POST',
 				data: data,
+				dataType: 'json',
 				beforeSend: function(xhr, settings) {
 					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
 						xhr.setRequestHeader("X-CSRFToken", csrftoken);
