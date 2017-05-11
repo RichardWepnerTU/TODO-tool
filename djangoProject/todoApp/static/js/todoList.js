@@ -118,12 +118,18 @@ var TODO_backend = (function(){
 		$entryElement.find('.TODO_entryDescription').attr('data-content', entry.description);
 	}
 	
-	var formatDate = function(date) {
-		// TODO: implement
-		return date;
+	var formatDate = function(dateString) {
+		var date = new Date(dateString);
+		return $.format.date(date, 'yyyy/MM/dd');
+	};
+	var formatDateForSlider = function(dateString) {
+		var date = new Date(dateString);
+		console.log('for slider:', $.format.date(date, 'yyyy-MM-dd'));
+		return $.format.date(date, 'yyyy-MM-dd');
 	};
 	var parseDate = function(dateString) {
-		return dateString;
+		var date = new Date(dateString);
+		return date.toISOString();
 	};
 	
 	var getAllEntries = function(params) {
@@ -284,7 +290,7 @@ var TODO_backend = (function(){
 			name: '',
 			description: '',
 			progress: 0,
-			dueDate: '2017/05/12'
+			dueDate: (new Date()).toISOString()
 		}, function(){
 			createEntry({
 				name: $dialog.find('.TODO_entryName').val(),
@@ -302,6 +308,10 @@ var TODO_backend = (function(){
 		$dialog.removeClass('TODO_dialogTemplate');
 		$dialog.appendTo($(document.body));
 		
+		var valueChangeEvent = function(event) {
+			$dialog.find('.TODO_entryProgressDisplay').text(event.value.newValue + ' %');
+		};
+		
 		$dialog.find('.TODO_entryName').val(entry.name);
 		$dialog.find('.TODO_entryDescription').val(entry.description);
 		$dialog.find('.TODO_entryProgress').slider({
@@ -309,14 +319,11 @@ var TODO_backend = (function(){
 			formatter: function(value) {
 				return value + ' %';
 			},
-			'classes': 'form-control',
-			'clazz': 'form-control',
-			'style': 'form-control'
-		}).on('slide', function(slideEvent) {
-			$dialog.find('.TODO_entryProgressDisplay').text(slideEvent.value + ' %');
-		});
+			change: valueChangeEvent,
+			slide: valueChangeEvent
+		}).change(valueChangeEvent);
 		$dialog.find('.TODO_entryProgressDisplay').text(entry.progress + ' %');
-		$dialog.find('.TODO_entryDueDate').val(entry.dueDate);
+		$dialog.find('.TODO_entryDueDate').val(formatDateForSlider(entry.dueDate));
 		
 		$dialog.find('.TODO_acceptButton').click(callback);
 		
