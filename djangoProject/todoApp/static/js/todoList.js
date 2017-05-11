@@ -202,7 +202,7 @@ var TODO_backend = (function(){
 		};
 		if(!DEBUG) {
 			$.ajax({
-				url: '/list/' + oldEntry.id,
+				url: '/list/' + oldEntry.id + '/',
 				type: 'PUT',
 				data: data,
 				beforeSend: function(xhr, settings) {
@@ -225,7 +225,7 @@ var TODO_backend = (function(){
 		};
 		if(!DEBUG) {
 			$.ajax({
-				url: '/list/' + entry.id,
+				url: '/list/' + entry.id + '/',
 				type: 'DELETE',
 				beforeSend: function(xhr, settings) {
 					if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
