@@ -19,7 +19,6 @@ def todoList(request):
     return HttpResponse(template.render(context, request))
 
 def requestMethod(request, id=0):
-	#print('wasjdddddkdfjdjfjsdfffffffffgjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj')
 	if request.method == 'GET':
 	    return todoGet(request)
 	elif request.method == 'POST':
@@ -39,10 +38,10 @@ def todoGet(request):
 #post new todo
 def todoPost(request):
 	post = QueryDict(request.body)
-	#newDate = post.get('dueDate')
-	newObj = ToDoEntry(name=post.get('name'), description=post.get('description'), dueDate='2017-09-25 16:00',progress=post.get('progress'))
+	newObj = ToDoEntry(name=post.get('name'), description=post.get('description'), dueDate=post.get('dueDate'),progress=post.get('progress'))
 	newObj.save()
-	return HttpResponse(status=201)
+	data = [{'id':newObj.id, 'name':newObj.name, 'description':newObj.description, 'dueDate':newObj.dueDate, 'progress':newObj.progress}]
+	return JsonResponse(data, safe=False)
 
 #put modify existing todo
 def todoPut(request):
@@ -57,8 +56,5 @@ def todoPut(request):
 
 #delete
 def todoDelete(request, id):
-	# delete = QueryDict(request.body)
-	#print('jsdjsjskjkkdkkdkkkdkkkkd', id)
 	ToDoEntry.objects.get(pk=id).delete()
 	return HttpResponse(status=200)
-	#pass
