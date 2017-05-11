@@ -18,13 +18,14 @@ def todoList(request):
     }
     return HttpResponse(template.render(context, request))
 
-def requestMethod(request):
+def requestMethod(request, id=0):
+	#print('wasjdddddkdfjdjfjsdfffffffffgjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj')
 	if request.method == 'GET':
 	    return todoGet(request)
 	elif request.method == 'POST':
 	    return todoPost(request)
 	elif request.method == 'DELETE':
-	    return todoDelete(request)
+	    return todoDelete(request, id)
 	elif request.method == 'PUT':
 		return todoPut(request)
 
@@ -43,7 +44,7 @@ def todoPost(request):
 	newObj.save()
 	return HttpResponse(status=201)
 
-put modify existing todo
+#put modify existing todo
 def todoPut(request):
 	put = QueryDict(request.body)
 	obj = ToDoEntry.objects.get(pk=put.get('id'))
@@ -57,6 +58,7 @@ def todoPut(request):
 #delete
 def todoDelete(request, id):
 	# delete = QueryDict(request.body)
-	# ToDoEntry.objects.get(pk=id).delete()
-	# return HttpResponse(status=200)
-	pass
+	#print('jsdjsjskjkkdkkdkkkdkkkkd', id)
+	ToDoEntry.objects.get(pk=id).delete()
+	return HttpResponse(status=200)
+	#pass
